@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="N-Queens Constraint Optimization & Visualization System. Professional backtracking and constraint-satisfaction simulator in high-contrast monochrome.">
+    <meta name="keywords" content="N-Queens, Backtracking, Constraint Satisfaction, State Space Pruning, Algorithm Simulator, Complexity Analysis">
+    <meta name="author" content="Deepesh Kumar Mahawar">
+    <meta name="robots" content="index, follow">
+
+    <title>N-Queens Constraint Optimization & Visualization System</title>
+
+    <!-- Professional Monochrome Design System -->
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="./images/logo.png">
+</head>
+<body>
+
+    <!-- ======================================================================
+         TOP BAR & BRANDING
+         ====================================================================== -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-icon">
+                <img src="./images/logo.png" alt="N-Queens logo">
+            </div>
+            <div class="brand-text">
+                <h1>N-Queens Constraint Optimization &amp; Visualization System</h1>
+                <div class="tagline">
+                    <span class="tagline-badge">Backtracking</span>
+                    <span class="tagline-badge">Complexity</span>
+                    <span class="tagline-badge">Optimization</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Audio Toggle Button -->
+            <button id="toggle-sound" class="btn-icon active" title="Toggle Audio Feedback" aria-label="Toggle Audio Feedback">
+                <span class="btn-indicator"></span>
+                <span class="label">Audio On</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ======================================================================
+         MAIN WORKSPACE
+         ====================================================================== -->
+    <main class="app-main">
+
+        <!-- ==================================================================
+             LEFT COLUMN: CHESSBOARD, CONTROLS & SANDBOX
+             ================================================================== -->
+        <section class="board-stage-wrapper" aria-label="Chessboard Workspace">
+
+            <!-- Configuration Ribbon -->
+            <div class="config-ribbon" id="config-ribbon">
+                <!-- N Selector -->
+                <div class="config-group">
+                    <label for="input-n" class="config-label">N:</label>
+                    <div class="n-picker">
+                        <input type="range" id="input-n" class="n-slider" min="4" max="12" value="8" step="1">
+                        <span id="val-n-display" class="n-badge">8</span>
+                    </div>
+                    <div class="quick-n-btns">
+                        <button class="btn-quick-n" data-n="4">4</button>
+                        <button class="btn-quick-n" data-n="8">8</button>
+                        <button class="btn-quick-n" data-n="10">10</button>
+                    </div>
+                </div>
+
+                <!-- Algorithm Selector -->
+                <div class="config-group">
+                    <label for="algorithm-select" class="config-label">Algorithm:</label>
+                    <select id="algorithm-select" class="select-modern">
+                        <option value="standard" selected>Classical Backtracking</option>
+                        <option value="optimized">Branch &amp; Bound (Bitmasks)</option>
+                        <option value="bitwise">Bitwise Benchmark</option>
+                    </select>
+                </div>
+
+                <!-- Board Theme -->
+                <div class="config-group">
+                    <label for="theme-select" class="config-label">Theme:</label>
+                    <select id="theme-select" class="select-modern">
+                        <option value="monochrome" selected>Monochrome Minimal</option>
+                        <option value="obsidian">Deep Obsidian</option>
+                        <option value="classic">Tournament Slate</option>
+                    </select>
+                </div>
+
+                <!-- Stop at First Solution -->
+                <div class="config-group">
+                    <label class="toggle-label" for="stop-first-checkbox">
+                        <input type="checkbox" id="stop-first-checkbox">
+                        <span>First Solution Only</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Chessboard Card Frame -->
+            <div class="board-card" id="board-card">
+                <div class="board-viewport" id="board-viewport">
+                    <!-- Laser Attack Rays & Collision Overlay -->
+                    <svg id="attack-overlay-svg" class="attack-overlay-svg" aria-hidden="true"></svg>
+
+                    <!-- Interactive CSS Grid Board -->
+                    <div id="chessboard-container" class="chessboard theme-monochrome" role="grid" aria-label="N-Queens Chessboard"></div>
+                </div>
+
+                <!-- Step Description HUD -->
+                <div class="step-hud" id="step-hud" role="status" aria-live="polite">
+                    <span class="hud-indicator" aria-hidden="true"></span>
+                    <span class="hud-text" id="step-description-text">Ready. Press Play or Step Next to initialize search.</span>
+                </div>
+            </div>
+
+            <!-- Playback Control Deck -->
+            <div class="control-deck" id="control-deck">
+                <div class="playback-btns">
+                    <!-- Play / Pause Buttons -->
+                    <button id="btn-play" class="btn-ctrl btn-primary-action" title="Start Visualization">
+                        Play
+                    </button>
+                    <button id="btn-pause" class="btn-ctrl btn-pause-action" title="Pause Visualization" style="display: none;">
+                        Pause
+                    </button>
+
+                    <!-- Stepper Navigation -->
+                    <button id="btn-prev" class="btn-ctrl" title="Previous Step">Step Back</button>
+                    <button id="btn-next" class="btn-ctrl" title="Next Step">Step Next</button>
+                    <button id="btn-reset" class="btn-ctrl" title="Reset Simulation">Reset</button>
+                    <button id="btn-jump-solution" class="btn-ctrl" title="Jump to Next Solution">Next Solution</button>
+                </div>
+
+                <!-- Speed Slider -->
+                <div class="speed-control">
+                    <label for="speed-slider" class="config-label">Speed:</label>
+                    <input type="range" id="speed-slider" class="speed-slider" min="1" max="100" value="70">
+                    <span id="speed-val-display" class="speed-display">70x (255ms)</span>
+                </div>
+
+                <!-- Feature Toggles -->
+                <div class="toggles-strip">
+                    <label class="toggle-label" for="toggle-rays">
+                        <input type="checkbox" id="toggle-rays" checked>
+                        <span>Attack Rays</span>
+                    </label>
+                    <label class="toggle-label" for="toggle-heatmap">
+                        <input type="checkbox" id="toggle-heatmap">
+                        <span>Threat Heatmap</span>
+                    </label>
+                    <label class="toggle-label" for="toggle-sandbox">
+                        <input type="checkbox" id="toggle-sandbox">
+                        <span>Sandbox Mode</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Interactive Sandbox Toolbar -->
+            <div class="sandbox-toolbar" id="sandbox-toolbar" style="display: none;">
+                <span class="sandbox-label"><strong>Sandbox:</strong> Click cells on the board to manually toggle queen placements.</span>
+                <div class="sandbox-actions">
+                    <button id="btn-manual-hint" class="btn-ctrl" title="Suggest safe square">Hint</button>
+                    <button id="btn-clear-manual" class="btn-ctrl" title="Clear placed pieces">Clear Board</button>
+                    <button id="btn-solve-manual" class="btn-ctrl btn-primary-action" title="Solve from current state">Solve From Here</button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ==================================================================
+             RIGHT COLUMN: TELEMETRY, ACTIVITY LOGS (BEFORE DEPTH), AND METRICS
+             ================================================================== -->
+        <aside class="analytics-wrapper" aria-label="Analytics & Telemetry">
+
+            <!-- 1. Live Telemetry Metric Cards -->
+            <div class="telemetry-grid">
+                <div class="metric-card">
+                    <span class="metric-title">Current Step</span>
+                    <span class="metric-value" id="metric-steps">0 / 0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Recursive Calls</span>
+                    <span class="metric-value" id="metric-calls">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Backtracks</span>
+                    <span class="metric-value highlight-warning" id="metric-backtracks">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Constraint Checks</span>
+                    <span class="metric-value" id="metric-conflicts">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Solutions Found</span>
+                    <span class="metric-value highlight-white" id="metric-solutions">0</span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-title">Search Pruned</span>
+                    <span class="metric-value highlight-white" id="metric-pruning">0.0%</span>
+                </div>
+            </div>
+
+            <!-- 2. Algorithm Activity Logs (PLACED BEFORE RECURSION DEPTH) -->
+            <div class="logs-card">
+                <div class="card-heading">
+                    <span>Algorithm Activity Logs</span>
+                    <div class="logs-heading-actions">
+                        <span class="metric-sublabel">Click step to jump</span>
+                        <button id="btn-clear-logs" class="btn-log-clear" title="Clear activity logs">Clear</button>
+                    </div>
+                </div>
+                <div class="logs-stream" id="log-stream" role="log"></div>
+            </div>
+
+            <!-- 3. Recursion Depth Gauge & Theoretical Complexity Card -->
+            <div class="depth-complexity-card">
+                <div class="card-heading">
+                    <span>Recursion Depth</span>
+                    <span id="metric-depth" class="metric-sublabel">Depth: 0 / 8</span>
+                </div>
+                <div class="depth-progress-container">
+                    <div class="depth-progress-bar" id="depth-progress-bar"></div>
+                </div>
+
+                <div class="complexity-subheading">
+                    <span>Theoretical Complexity Analysis</span>
+                    <span id="metric-time" class="metric-sublabel">0.00 ms</span>
+                </div>
+                <div class="complexity-breakdown">
+                    <div class="comp-item">
+                        <div class="comp-title">Naive Search Space (Nᴺ)</div>
+                        <div class="comp-math" id="theory-nn">16,777,216</div>
+                    </div>
+                    <div class="comp-item">
+                        <div class="comp-title">Row Permutations (N!)</div>
+                        <div class="comp-math" id="theory-nfact">40,320</div>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <!-- ======================================================================
+         BOTTOM DRAWER: SOLUTIONS GALLERY
+         ====================================================================== -->
+    <section class="solutions-drawer" aria-label="Solutions Gallery">
+        <div class="drawer-header">
+            <h2 class="drawer-title">Discovered Solutions</h2>
+            <span class="metric-sublabel">Click thumbnail to load board configuration</span>
+        </div>
+        <div class="solutions-grid" id="solutions-gallery">
+            <div class="empty-gallery">Searching for solutions...</div>
+        </div>
+    </section>
+
+    <!-- ======================================================================
+         FOOTER
+         ====================================================================== -->
+    <footer class="app-footer">
+        <span>&copy; 2026 Developed by <strong>Deepesh Kumar Mahawar</strong></span>
+    </footer>
+
+    <!-- Application Controller -->
+    <script type="module" src="./js/app.js"></script>
+</body>
+</html>
